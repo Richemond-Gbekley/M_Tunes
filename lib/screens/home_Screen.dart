@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:m_tunes/screens/favourites.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Firebase Auth import
+import 'package:m_tunes/screens/hymns.dart'; // Import HymnsScreen
+import 'package:m_tunes/screens/hymnlist.dart'; // Import HymnDetailScreen
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,9 +14,23 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool isPlaying = false; // To track if a song is playing
   String lastPlayedSong = 'The Coming King'; // Last played song
+  String userInitials = ''; // User initials to be displayed
 
   int _tabBarIndex = 0; // To track the current tab index
   int _navBarIndex = 0; // To track the current bottom nav index
+
+  // Placeholder for hymn details; can be updated when navigating to the detail page
+  String selectedHymnCategory = '';
+  List<String> selectedHymns = [];
+
+  // This will hold the pages that correspond to each tab
+  final List<Widget> _pages = [
+    Center(child: Text('All Content')), // Placeholder for "All" page
+    HymnsScreen(onCategorySelected: (String category, List<String> hymns) {  },), // Hymns page
+    Center(child: Text('Files Content')), // Placeholder for "Files" page
+    Center(child: Text('Tunes Content')), // Placeholder for "Tunes" page
+    // HymnDetailScreen is not added here; it will be handled dynamically
+  ];
 
   // Helper method to toggle song playing state
   void _togglePlaying() {
@@ -21,6 +38,35 @@ class _HomeScreenState extends State<HomeScreen> {
       isPlaying = !isPlaying;
     });
   }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserInitials();
+  }
+
+  // Function to extract and load the user's initials from Firebase
+// Function to extract and load the user's initials from Firebase
+  void _loadUserInitials() {
+    User? currentUser = FirebaseAuth.instance.currentUser; // Get the current user
+
+    // Check if the user is logged in and has a display name
+    if (currentUser != null && currentUser.displayName != null) {
+      String displayName = currentUser.displayName!; // Get the display name
+
+      // Extract just the first letter of the display name
+      setState(() {
+        userInitials = displayName[0].toUpperCase(); // Take the first initial
+      });
+    } else {
+      // Handle case where display name is not set
+      setState(() {
+        userInitials = 'U'; // Default to 'U' or any other default value
+      });
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -31,39 +77,24 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            // Add space to move the top section down
+            const SizedBox(height: 30),  // Adjust height as needed to move the tabs down
+
             // Top navigation row with SafeArea
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Icon(Icons.arrow_back, color: Colors.blue), // Back button
-                  ),
-
-                ],
-              ),
-            ),
-
-            // Tab bar row
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  const CircleAvatar(
-                    backgroundColor: Colors.grey,
-                    child: Text("RG", style: TextStyle(color: Colors.white)),
+                  CircleAvatar(
+                    backgroundColor: Colors.blueAccent,
+                    child: Text(userInitials, style: const TextStyle(color: Colors.black)), // Display user initials
                   ),
+
                   GestureDetector(
                     onTap: () {
-                      // Navigate to All page
                       setState(() {
                         _tabBarIndex = 0; // Mark 'All' as current page
-                        _navBarIndex = 0; // Sync with home icon on bottom nav
                       });
                     },
                     child: Text(
@@ -73,7 +104,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      // Navigate to Hymns page
                       setState(() {
                         _tabBarIndex = 1; // Mark 'Hymns' as current page
                       });
@@ -85,7 +115,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      // Navigate to Files page
                       setState(() {
                         _tabBarIndex = 2; // Mark 'Files' as current page
                       });
@@ -97,7 +126,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      // Navigate to Tunes page
                       setState(() {
                         _tabBarIndex = 3; // Mark 'Tunes' as current page
                       });
@@ -112,33 +140,26 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Grid buttons (Favourites, Playlist, Downloads, History)
+            // Main content area that changes based on _tabBarIndex
             Expanded(
-              child: GridView.count(
-                padding: const EdgeInsets.all(16.0),
-                crossAxisCount: 2,
-                crossAxisSpacing: 16.0,
-                mainAxisSpacing: 16.0,
+              child: IndexedStack(
+                index: _tabBarIndex,
                 children: [
-                  _buildGridButton('Favourites', Icons.favorite, Colors.blue, screenHeight, () {
-                    // Navigate to Favourites page
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => FavouritesScreen(favouriteHymns: [Hymn('Amazing Grace', 'Lyrics of Amazing Grace...'),
-                          Hymn('How Great Thou Art', 'Lyrics of How Great Thou Art...'),],),
-                      ),
-                    );
-                  }),
-                  _buildGridButton('Playlist', Icons.playlist_play, Colors.blue, screenHeight, () {
-                    // Navigate to Playlist page
-                  }),
-                  _buildGridButton('Downloads', Icons.download, Colors.blue, screenHeight, () {
-                    // Navigate to Downloads page
-                  }),
-                  _buildGridButton('History', Icons.history, Colors.blue, screenHeight, () {
-                    // Navigate to History page
-                  }),
+                  _pages[0], // All Content page
+                  // Pass the callback to navigate to hymn detail
+                  HymnsScreen(
+                    onCategorySelected: (category, hymns) {
+                      setState(() {
+                        selectedHymnCategory = category;
+                        selectedHymns = hymns;
+                        _tabBarIndex = 4; // Move to Hymn detail page
+                      });
+                    },
+                  ),
+                  _pages[2], // Files Content page
+                  _pages[3], // Tunes Content page
+                  // HymnDetailScreen will be shown here based on user selection
+                  HymnDetailScreen(category: selectedHymnCategory, hymns: selectedHymns),
                 ],
               ),
             ),
@@ -193,32 +214,6 @@ class _HomeScreenState extends State<HomeScreen> {
             label: '',
           ),
         ],
-      ),
-    );
-  }
-
-  // Helper method to create grid buttons
-  Widget _buildGridButton(String title, IconData icon, Color iconColor, double screenHeight, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: BorderRadius.circular(10),
-          gradient: const LinearGradient(
-            colors: [Colors.blue, Colors.black],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: iconColor, size: screenHeight * 0.05), // Responsive icon size
-            SizedBox(height: screenHeight * 0.01),
-            Text(title, style: TextStyle(color: Colors.white, fontSize: screenHeight * 0.02)),
-          ],
-        ),
       ),
     );
   }

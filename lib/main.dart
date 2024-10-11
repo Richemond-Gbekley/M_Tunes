@@ -28,6 +28,11 @@ class MTunes extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/HomeScreen': (context) => const HomeScreen(),
       },
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        primaryColor: const Color(0xFF5E17EB),
+      ),
+      debugShowCheckedModeBanner: false, // Remove the debug banner
     );
   }
 }

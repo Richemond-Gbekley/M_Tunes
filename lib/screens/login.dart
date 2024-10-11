@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-
+import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,9 +9,12 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool _isPasswordVisible = false; // State variable to manage password visibility
+  bool _isPasswordVisible = false;
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+  // Firebase Auth instance
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Method to show the forgot password dialog
   void _showForgotPasswordDialog() {
@@ -36,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: emailDialogController,
                   decoration: const InputDecoration(
                     hintText: 'Email',
-                    hintStyle: TextStyle(color: Colors.white54),
+                    hintStyle: TextStyle(color: Colors.black),
                     filled: true,
                     fillColor: Colors.white12,
                     border: OutlineInputBorder(
@@ -52,17 +54,28 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderSide: BorderSide(color: Colors.blue, width: 2),
                     ),
                   ),
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: Colors.black),
                 ),
               ],
             ),
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                // Handle password reset logic
+              onPressed: () async {
                 String email = emailDialogController.text;
                 // Implement your password reset logic here
+                if (email.isNotEmpty) {
+                  try {
+                    await _auth.sendPasswordResetEmail(email: email);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Password reset email sent')),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(e.toString())),
+                    );
+                  }
+                }
                 Navigator.of(context).pop();
               },
               child: const Text('Submit'),
@@ -79,22 +92,25 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Simulated login function
-  void _login() {
+  // Login function using Firebase Authentication
+  void _login() async {
     String email = emailController.text;
     String password = passwordController.text;
 
-    // Implement your actual login logic here
-    if (email == 'user@example.com' && password == 'password123') {
+    try {
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
       // Navigate to HomeScreen on successful login
       Navigator.pushNamed(context, '/HomeScreen');
-      // Clear the text fields
       emailController.clear();
       passwordController.clear();
-    } else {
-      // Show error message (for demo purposes)
+    } catch (e) {
+      // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid email or password')),
+        SnackBar(content: Text(e.toString())),
       );
     }
   }
@@ -102,23 +118,21 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // Set background color
+      backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Back button at the top inside SafeArea to prevent overlap with system UI
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: GestureDetector(
                 onTap: () {
-                  // Navigate back to the Main page
                   Navigator.popUntil(context, ModalRoute.withName('/'));
                 },
                 child: const Row(
                   children: [
                     Icon(
                       Icons.arrow_back,
-                      color: Colors.white, // Change to your desired color
+                      color: Colors.white,
                     ),
                     SizedBox(width: 8),
                   ],
@@ -126,8 +140,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-
-          // The rest of the body is centered
           Center(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -148,8 +160,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextField(
                     controller: emailController,
                     decoration: const InputDecoration(
-                      hintText: 'Enter Email', // Faded placeholder text
-                      hintStyle: TextStyle(color: Colors.white54), // Faded effect
+                      hintText: 'Enter Email',
+                      hintStyle: TextStyle(color: Colors.white54),
                       filled: true,
                       fillColor: Colors.white12,
                       border: OutlineInputBorder(
@@ -165,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderSide: BorderSide(color: Colors.blue, width: 2),
                       ),
                     ),
-                    style: const TextStyle(color: Colors.white), // Text color after typing
+                    style: const TextStyle(color: Colors.white),
                   ),
                   const SizedBox(height: 20),
 
@@ -173,8 +185,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextField(
                     controller: passwordController,
                     decoration: InputDecoration(
-                      hintText: 'Enter Password', // Faded placeholder text
-                      hintStyle: const TextStyle(color: Colors.white54), // Faded effect
+                      hintText: 'Enter Password',
+                      hintStyle: const TextStyle(color: Colors.white54),
                       filled: true,
                       fillColor: Colors.white12,
                       border: const OutlineInputBorder(
@@ -194,29 +206,29 @@ class _LoginScreenState extends State<LoginScreen> {
                           _isPasswordVisible
                               ? Icons.visibility
                               : Icons.visibility_off,
-                          color: Colors.white54, // Change icon color as needed
+                          color: Colors.white54,
                         ),
                         onPressed: () {
                           setState(() {
-                            _isPasswordVisible = !_isPasswordVisible; // Toggle visibility
+                            _isPasswordVisible = !_isPasswordVisible;
                           });
                         },
                       ),
                     ),
-                    obscureText: !_isPasswordVisible, // Hide password input based on state
-                    style: const TextStyle(color: Colors.white), // Text color after typing
+                    obscureText: !_isPasswordVisible,
+                    style: const TextStyle(color: Colors.white),
                   ),
                   const SizedBox(height: 30),
 
                   // Submit Button
                   ElevatedButton(
-                    onPressed: _login, // Call the login function
+                    onPressed: _login,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF5E17EB), // Background color
-                      foregroundColor: Colors.white, // Text color
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10), // Button padding
+                      backgroundColor: const Color(0xFF5E17EB),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30), // Rounded corners
+                        borderRadius: BorderRadius.circular(30),
                       ),
                     ),
                     child: const Text(
