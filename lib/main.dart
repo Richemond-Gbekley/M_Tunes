@@ -1,16 +1,25 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'screens/signup.dart';
-import 'screens/google_auth.dart';
-import 'screens/apple_auth.dart';
-import 'screens/login.dart';
-import 'screens/home.dart';
-import 'screens/home_screen.dart'; // Ensure this matches the actual file name
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:m_tunes/presentation/splash/pages/splash.dart';
+import 'package:m_tunes/service_locator.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:m_tunes/core/configs/theme/app_theme.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();  // Make sure Firebase initializes properly
+  HydratedBloc.storage = await HydratedStorage.build(
+    storageDirectory: kIsWeb
+        ? HydratedStorage.webStorageDirectory
+        : await getApplicationDocumentsDirectory(),
+  );
+
+  await Firebase.initializeApp();
+
+  await initializeDependencies();
   runApp(const MTunes());
+
 }
 
 class MTunes extends StatelessWidget {
@@ -19,20 +28,11 @@ class MTunes extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const Main(),
-        '/signup': (context) => const SignUpScreen(),
-        '/google_auth': (context) => const GoogleAuthScreen(),
-        '/apple_auth': (context) => const AppleAuthScreen(),
-        '/login': (context) => const LoginScreen(),
-        '/HomeScreen': (context) => const HomeScreen(),
-      },
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: const Color(0xFF5E17EB),
-      ),
-      debugShowCheckedModeBanner: false, // Remove the debug banner
-    );
+      home: const SplashScreen(),
+
+
+      theme: AppTheme.lightTheme,
+      debugShowCheckedModeBanner: false,
+      );
   }
 }
