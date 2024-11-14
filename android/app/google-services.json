@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "895218918276",
+    "project_id": "mtunes-d0907",
+    "storage_bucket": "mtunes-d0907.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:895218918276:android:6c072b341f14b0844bb3d1",
+        "android_client_info": {
+          "package_name": "com.TechGeek.m_tunes"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "895218918276-37kcbc8hmol4h278cngmrfsj6ljk0ljl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.TechGeek.m_tunes",
+            "certificate_hash": "de878fa751c1c4717c00bd774f8c75fab5dc4051"
+          }
+        },
+        {
+          "client_id": "895218918276-8amhmch6fdk4vs8iq3d9a0moavekhfus.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_CYKESS_T3WctOcRIXtBLNM0nTHBrZWs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "895218918276-8amhmch6fdk4vs8iq3d9a0moavekhfus.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "895218918276-vboe7c5j8i2gnuf00okbjt6t84gmhnpi.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.TechGeek.mTunes"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
